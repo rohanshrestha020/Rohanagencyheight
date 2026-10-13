@@ -5,12 +5,14 @@ import { AccountSettingsPage } from "@/components/account-settings-page"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 import { QuoteRequestsPage } from "@/components/quote-requests/quote-requests-page"
+import { MarketsPage } from "@/components/markets/markets-page"
 
-// Only Dashboard, Account Settings and Quote Requests exist as real pages so
+// Only Dashboard, Markets, Account Settings and Quote Requests exist as real pages so
 // far — other sidebar items still highlight when clicked (AppSidebar's own
 // internal state) but don't navigate anywhere yet.
 const NAV_PAGES = {
   dashboard: "dashboard",
+  markets: "markets",
   accounts: "account-settings",
   "request-quote": "quote-requests",
 }
@@ -54,6 +56,10 @@ function App() {
 
   if (page === "account-settings") {
     return <AccountSettingsPage onNavigate={handleSidebarNavigate} />
+  }
+
+  if (page === "markets") {
+    return <MarketsPage onNavigate={handleSidebarNavigate} />
   }
 
   if (page === "quote-requests") {
