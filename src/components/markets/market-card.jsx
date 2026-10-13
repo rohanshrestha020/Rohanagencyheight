@@ -1,44 +1,50 @@
-import { useState } from "react"
 import { ArrowRight, Check, Zap } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-// Figma "Market Card - proposed" (DES-1, node 14:4059). One card, three
-// access types — each maps to a Button hierarchy from the design system.
-const ACCESS = {
-  instant: {
-    label: "Get instant access",
-    doneLabel: "Access granted",
-    variant: "primary",
-    leadingIcon: Zap,
-  },
-  wholesale: {
-    label: "Submit a risk",
-    doneLabel: "Risk submitted",
-    variant: "tertiary",
-    trailingIcon: ArrowRight,
-  },
-  appointment: {
-    label: "Request appointment",
-    doneLabel: "Appointment requested",
-    variant: "secondary",
-  },
-}
-
 // Figma "Elevation/Card" (resting) and "Elevation/Card-Hover" effect styles.
 const ELEVATION =
   "shadow-[0_1px_2px_-1px_var(--color-black-alpha-8),0_0_0_1px_var(--color-black-alpha-16)] hover:shadow-[0_2px_10px_-1px_var(--color-black-alpha-8),0_1px_2px_-1px_var(--color-black-alpha-16),0_0_0_1px_var(--color-black-alpha-12)]"
 
-function MarketLogo({ logo, name }) {
+// Which CTA a card shows. Access type picks the Button hierarchy (Figma:
+// instant = primary, wholesale = tertiary, appointment = secondary).
+function resolveAction(carrier, { appointed, status }) {
+  if (appointed) {
+    return {
+      kind: "submit",
+      label: "Submit a risk",
+      variant: "tertiary",
+      trailingIcon: ArrowRight,
+      // Assumption: Figma reused the wholesale caption on appointed cards;
+      // that copy isn't true once you hold the appointment.
+      caption: "You're appointed — submit risks any time",
+    }
+  }
+  if (carrier.access === "instant") {
+    return { kind: "grant", label: "Get instant access", variant: "primary", leadingIcon: Zap, caption: carrier.caption }
+  }
+  if (carrier.access === "wholesale") {
+    return { kind: "submit", label: "Submit a risk", variant: "tertiary", trailingIcon: ArrowRight, caption: carrier.caption }
+  }
+  if (status === "requested") {
+    return { kind: "request", label: "Appointment requested", variant: "secondary", leadingIcon: Check, disabled: true, caption: "We'll email you when it's approved" }
+  }
+  return { kind: "request", label: "Request appointment", variant: "secondary", caption: carrier.caption }
+}
+
+function MarketLogo({ logo, name, className }) {
   return (
-    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border-default bg-surface-base p-2">
+    <div
+      className={cn(
+        "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border-default bg-surface-base p-2",
+        className
+      )}
+    >
       {logo ? (
-        <img src={logo} alt="" className="size-12 object-contain" />
+        <img src={logo} alt={`${name} logo`} className="size-full rounded-sm object-contain" />
       ) : (
-        // Assumption: no logo asset in the repo for this carrier — fall back
-        // to initials on a neutral tile rather than a broken image.
         <span className="text-sm leading-5 font-semibold text-text-secondary">
           {name.slice(0, 3).toUpperCase()}
         </span>
@@ -49,107 +55,159 @@ function MarketLogo({ logo, name }) {
 
 function AmRating({ value }) {
   return (
-    <div className="flex items-center gap-1 rounded-full border border-border-default bg-surface-base py-1 pr-1 pl-2">
+    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border-default bg-surface-base py-1 pr-1 pl-2">
       <span className="text-[11px] leading-4 text-text-secondary">AM Rating</span>
-      <span className="rounded-full bg-success-solid px-2 py-1 text-sm leading-5 font-medium text-success-contrast">
+      <span className="rounded-full bg-success-solid px-2 text-sm leading-5 font-medium text-success-contrast">
         {value}
       </span>
     </div>
   )
 }
 
-function DetailRow({ label, value }) {
+function NewBadge() {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <dt className="text-xs leading-4 text-text-secondary">{label}</dt>
-      <dd className="text-sm leading-5 font-medium text-text-primary">{value}</dd>
+    <Badge status="info" size="sm" shape="circular" className="font-normal">
+      New this month
+    </Badge>
+  )
+}
+
+function stateMatchStatus(stateMatch) {
+  if (stateMatch.startsWith("All")) return "success"
+  if (stateMatch.startsWith("Varies")) return "general"
+  return "warning"
+}
+
+function MarketTags({ carrier, className }) {
+  return (
+    <div className={cn("flex flex-wrap gap-1", className)}>
+      {carrier.paper ? (
+        <Badge status={carrier.paper === "Admitted" ? "info" : "warning"} size="sm" className="font-normal">
+          {carrier.paper}
+        </Badge>
+      ) : null}
+      <Badge status={stateMatchStatus(carrier.stateMatch)} size="sm" className="font-normal">
+        {carrier.stateMatch}
+      </Badge>
     </div>
   )
 }
 
-function MarketCard({
-  logo,
-  name,
-  hook,
-  isNew = false,
-  amRating,
-  paper,
-  stateMatch,
-  licensedIn,
-  commission,
-  access = "appointment",
-  caption,
-}) {
-  const [requested, setRequested] = useState(false)
-  const action = ACCESS[access]
-  const LeadingIcon = requested ? Check : action.leadingIcon
-  const TrailingIcon = requested ? null : action.trailingIcon
+function detailRows(carrier) {
+  const rows = [["Licensed in", carrier.licensedIn]]
+  if (carrier.commission) {
+    rows.push(["New business", carrier.commission.newBusiness], ["Renewal", carrier.commission.renewal])
+  } else {
+    rows.push(["Commission", "On appointment"])
+  }
+  return rows
+}
 
+function MarketAction({ action, onAction, className }) {
+  const LeadingIcon = action.leadingIcon
+  const TrailingIcon = action.trailingIcon
   return (
-    <article
-      className={cn(
-        "flex flex-col gap-4 rounded-md bg-surface-base p-4 transition-shadow",
-        ELEVATION
-      )}
-    >
+    <div className={cn("flex flex-col gap-2", className)}>
+      <Button
+        variant={action.variant}
+        shape="circular"
+        className="w-full"
+        disabled={action.disabled}
+        onClick={() => onAction(action.kind)}
+      >
+        {LeadingIcon ? <LeadingIcon /> : null}
+        {action.label}
+        {TrailingIcon ? <TrailingIcon /> : null}
+      </Button>
+      <p className="text-center text-xs leading-4 text-text-secondary">{action.caption}</p>
+    </div>
+  )
+}
+
+// Figma "Market Card - proposed" (node 14:4059) — the grid card.
+function GridMarketCard({ carrier, action, onAction }) {
+  return (
+    <article className={cn("flex flex-col gap-4 rounded-md bg-surface-base p-4 transition-shadow", ELEVATION)}>
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <MarketLogo logo={logo} name={name} />
-          {isNew || amRating ? (
+          <MarketLogo logo={carrier.logo} name={carrier.name} />
+          {carrier.isNew || carrier.amRating ? (
             <div className="flex flex-col items-end gap-2">
-              {isNew ? (
-                <Badge status="info" size="sm" shape="circular">
-                  New this month
-                </Badge>
-              ) : null}
-              {amRating ? <AmRating value={amRating} /> : null}
+              {carrier.isNew ? <NewBadge /> : null}
+              {carrier.amRating ? <AmRating value={carrier.amRating} /> : null}
             </div>
           ) : null}
         </div>
         <div className="flex flex-col gap-0.5">
-          <h3 className="text-base leading-6 font-medium text-text-primary">{name}</h3>
-          <p className="line-clamp-2 text-sm leading-5 text-text-secondary">{hook}</p>
+          <h3 className="text-base leading-6 font-medium text-text-primary">{carrier.name}</h3>
+          <p className="line-clamp-2 text-sm leading-5 text-text-secondary">{carrier.hook}</p>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1">
-        <Badge status={paper === "Admitted" ? "info" : "warning"} size="sm" className="font-normal">
-          {paper}
-        </Badge>
-        <Badge status="success" size="sm" className="font-normal">
-          {stateMatch}
-        </Badge>
-      </div>
+      <MarketTags carrier={carrier} />
 
       <dl className="flex flex-col gap-2 border-t border-border-default pt-3">
-        <DetailRow label="Licensed in" value={licensedIn} />
-        {commission ? (
-          <>
-            <DetailRow label="New business" value={commission.newBusiness} />
-            <DetailRow label="Renewal" value={commission.renewal} />
-          </>
-        ) : (
-          <DetailRow label="Commission" value="On appointment" />
-        )}
+        {detailRows(carrier).map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-2">
+            <dt className="text-xs leading-4 text-text-secondary">{label}</dt>
+            <dd className="text-sm leading-5 font-medium text-text-primary">{value}</dd>
+          </div>
+        ))}
       </dl>
 
       {/* mt-auto pins the CTA to the bottom so buttons line up across a grid row */}
-      <div className="mt-auto flex flex-col gap-2">
-        <Button
-          variant={action.variant}
-          shape="circular"
-          className="w-full"
-          disabled={requested}
-          onClick={() => setRequested(true)}
-        >
-          {LeadingIcon ? <LeadingIcon /> : null}
-          {requested ? action.doneLabel : action.label}
-          {TrailingIcon ? <TrailingIcon /> : null}
-        </Button>
-        <p className="text-center text-xs leading-4 text-text-secondary">{caption}</p>
-      </div>
+      <MarketAction action={action} onAction={onAction} className="mt-auto" />
     </article>
   )
 }
 
-export { MarketCard }
+// Figma "Market Card · Compact - proposed" (node 17:3962) — the list row.
+// Stacks vertically below lg so it still works on narrow screens.
+function CompactMarketCard({ carrier, action, onAction }) {
+  return (
+    <article
+      className={cn(
+        "flex flex-col gap-4 rounded-md bg-surface-base p-4 transition-shadow lg:flex-row lg:items-center lg:gap-6",
+        ELEVATION
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-6">
+        <MarketLogo logo={carrier.logo} name={carrier.name} />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base leading-6 font-medium text-text-primary">{carrier.name}</h3>
+              {carrier.isNew ? <NewBadge /> : null}
+              {carrier.amRating ? <AmRating value={carrier.amRating} /> : null}
+            </div>
+            <p className="truncate text-sm leading-5 text-text-secondary">{carrier.hook}</p>
+          </div>
+          <MarketTags carrier={carrier} />
+        </div>
+      </div>
+
+      <dl className="flex shrink-0 gap-6 border-border-default lg:w-[300px] lg:border-l lg:pl-6">
+        {detailRows(carrier).map(([label, value]) => (
+          <div key={label} className="flex flex-col">
+            <dt className="text-xs leading-4 whitespace-nowrap text-text-secondary">{label}</dt>
+            <dd className="text-sm leading-5 font-medium whitespace-nowrap text-text-primary">{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <MarketAction action={action} onAction={onAction} className="shrink-0 lg:w-[220px]" />
+    </article>
+  )
+}
+
+function MarketCard({ carrier, layout = "grid", appointed = false, status, onAction }) {
+  const action = resolveAction(carrier, { appointed, status })
+  const handleAction = (kind) => onAction?.(kind, carrier)
+  return layout === "compact" ? (
+    <CompactMarketCard carrier={carrier} action={action} onAction={handleAction} />
+  ) : (
+    <GridMarketCard carrier={carrier} action={action} onAction={handleAction} />
+  )
+}
+
+export { MarketCard, MarketLogo }
