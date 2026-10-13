@@ -1,0 +1,491 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/instrument-sans';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --code-bg: #f4f3ec;
+  --brand: #aa3bff;
+  --brand-bg: rgba(170, 59, 255, 0.1);
+  --brand-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+
+  /* ----------------------------------------------------------------
+     Figma "spacing" collection (primitive scale, steps 0-9).
+     Kept out of Tailwind's own numeric --spacing-N scale on purpose:
+     steps 0-4 match Tailwind's defaults, but 5-9 diverge (24/32/44/52/64
+     vs Tailwind's 20/24/28/32/36), so overriding p-5..p-9 etc. would
+     silently change spacing everywhere else in the app.
+     ---------------------------------------------------------------- */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 44px;
+  --space-8: 52px;
+  --space-9: 64px;
+
+  /* ----------------------------------------------------------------
+     Figma "Typography" collection (primitive scale only — the named
+     text styles like Heading/H5, Label/Small are Figma Text Styles,
+     a separate feature, not variables; not pulled in here).
+     ---------------------------------------------------------------- */
+  --font-family-sans: 'Instrument Sans Variable', sans-serif;
+
+  --font-size-11: 11px;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-18: 18px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-28: 28px;
+  --font-size-36: 36px;
+  --font-size-44: 44px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-16: 16px;
+  --line-height-18: 18px;
+  --line-height-20: 20px;
+  --line-height-24: 24px;
+  --line-height-26: 26px;
+  --line-height-28: 28px;
+  --line-height-36: 36px;
+  --line-height-40: 40px;
+  --line-height-52: 52px;
+  --line-height-64: 64px;
+
+  /* shadcn/ui semantic tokens — mapped onto the Figma "Tokens" collection
+     below where a direct equivalent exists. secondary, chart-1..5, and
+     sidebar-* have no Figma counterpart and are left as shadcn's defaults. */
+  --background: var(--color-surface-base);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface-base);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface-base);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-primary-solid);
+  --primary-foreground: var(--color-primary-contrast);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: var(--color-surface-subtle);
+  --muted-foreground: var(--color-text-tertiary);
+  --accent: var(--color-surface-highlight);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error-solid);
+  --border: var(--color-border-default);
+  --input: var(--color-border-default);
+  --ring: var(--color-border-focus);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: var(--radius-lg);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+/* ====================================================================
+   Figma "_colors_primitives" collection — raw palette, one layer.
+   Named to mirror Figma's group/step naming (e.g. Brand/brand-9 ->
+   --color-brand-9) so Tailwind utilities read the same as the file
+   (bg-brand-9, text-neutral-12, border-error-red-6, ...).
+   Note: "Primary Red" isn't referenced by any token in the Tokens
+   collection — looks unused/legacy in the Figma file, kept here for
+   completeness only.
+   ==================================================================== */
+@theme {
+  /* Neutrals */
+  --color-neutral-1: #ffffff;
+  --color-neutral-2: #fafafa;
+  --color-neutral-3: #f5f7fc;
+  --color-neutral-4: #e6e9f0;
+  --color-neutral-5: #dbdfeb;
+  --color-neutral-6: #d1d6e5;
+  --color-neutral-7: #b8becf;
+  --color-neutral-8: #a0a7b9;
+  --color-neutral-9: #8990a3;
+  --color-neutral-10: #717789;
+  --color-neutral-11: #5a5f70;
+  --color-neutral-12: #191919;
+
+  /* Brand */
+  --color-brand-1: #f8f9ff;
+  --color-brand-2: #edefff;
+  --color-brand-3: #e1e5ff;
+  --color-brand-4: #caceff;
+  --color-brand-5: #b3b8f5;
+  --color-brand-6: #a1a6e8;
+  --color-brand-7: #9094db;
+  --color-brand-8: #7f82ce;
+  --color-brand-9: #6f71c1;
+  --color-brand-10: #5c5dad;
+  --color-brand-11: #4b4999;
+  --color-brand-12: #2e2b68;
+  --color-brand-a20: rgba(111, 113, 193, 0.2);
+  --color-brand-a30: rgba(111, 113, 193, 0.3);
+  --color-brand-a50: rgba(111, 113, 193, 0.5);
+  --color-brand-a60: rgba(111, 113, 193, 0.6);
+
+  /* Error Red */
+  --color-error-red-1: #fffafa;
+  --color-error-red-2: #fff8f7;
+  --color-error-red-3: #ffe6e4;
+  --color-error-red-4: #ffb5ae;
+  --color-error-red-5: #ff8078;
+  --color-error-red-6: #f36960;
+  --color-error-red-7: #e65147;
+  --color-error-red-8: #d9352c;
+  --color-error-red-9: #cc0000;
+  --color-error-red-10: #aa0a06;
+  --color-error-red-11: #890e09;
+  --color-error-red-12: #63121c;
+  --color-error-red-a20: rgba(204, 0, 0, 0.2);
+
+  /* Info Blue */
+  --color-info-blue-1: #f7feff;
+  --color-info-blue-2: #effaff;
+  --color-info-blue-3: #dbeafe;
+  --color-info-blue-4: #b6cffd;
+  --color-info-blue-5: #93b4fb;
+  --color-info-blue-6: #78a1f8;
+  --color-info-blue-7: #5d8df4;
+  --color-info-blue-8: #4279f0;
+  --color-info-blue-9: #2563eb;
+  --color-info-blue-10: #2159e1;
+  --color-info-blue-11: #1d4ed8;
+  --color-info-blue-12: #172554;
+
+  /* Primary Red (unused elsewhere in the file — see note above) */
+  --color-primary-red-1: #fffafb;
+  --color-primary-red-2: #feeaeb;
+  --color-primary-red-3: #f2d8d9;
+  --color-primary-red-4: #f8b9b7;
+  --color-primary-red-5: #fa9995;
+  --color-primary-red-6: #f88882;
+  --color-primary-red-7: #f6766f;
+  --color-primary-red-8: #f3635b;
+  --color-primary-red-9: #f04d46;
+  --color-primary-red-10: #dc3932;
+  --color-primary-red-11: #c8221b;
+  --color-primary-red-12: #96201b;
+
+  /* Secondary Blue */
+  --color-secondary-blue-1: #dee9fc;
+  --color-secondary-blue-2: #cad9f3;
+  --color-secondary-blue-3: #b0c0e8;
+  --color-secondary-blue-4: #97a8dc;
+  --color-secondary-blue-5: #7f90d0;
+  --color-secondary-blue-6: #6878c4;
+  --color-secondary-blue-7: #5160a7;
+  --color-secondary-blue-8: #3c498a;
+  --color-secondary-blue-9: #2d2e67;
+  --color-secondary-blue-10: #262758;
+  --color-secondary-blue-11: #1f2542;
+  --color-secondary-blue-12: #0c121d;
+  --color-secondary-blue-700: #17253a;
+  --color-secondary-blue-800: #0e1725;
+
+  /* Success Green */
+  --color-success-green-1: #f2fff2;
+  --color-success-green-2: #ebffeb;
+  --color-success-green-3: #d4fad4;
+  --color-success-green-4: #b0f2b5;
+  --color-success-green-5: #89e996;
+  --color-success-green-6: #7ddf8c;
+  --color-success-green-7: #71d483;
+  --color-success-green-8: #65ca79;
+  --color-success-green-9: #58c070;
+  --color-success-green-10: #4aa56d;
+  --color-success-green-11: #3d8a68;
+  --color-success-green-12: #265c56;
+
+  /* Tertiary Blue */
+  --color-tertiary-blue-1: #f9fdff;
+  --color-tertiary-blue-2: #f3fafe;
+  --color-tertiary-blue-3: #ecf4f9;
+  --color-tertiary-blue-4: #d6e7f2;
+  --color-tertiary-blue-5: #c1dbeb;
+  --color-tertiary-blue-6: #a5cae2;
+  --color-tertiary-blue-7: #88bad9;
+  --color-tertiary-blue-8: #6ca0bf;
+  --color-tertiary-blue-9: #5086a6;
+  --color-tertiary-blue-10: #336d8d;
+  --color-tertiary-blue-11: #135575;
+  --color-tertiary-blue-12: #003d5e;
+
+  /* Warning Yellow */
+  --color-warning-yellow-1: #fffeee;
+  --color-warning-yellow-2: #fffee4;
+  --color-warning-yellow-3: #fcf2cf;
+  --color-warning-yellow-4: #fbeaad;
+  --color-warning-yellow-5: #fbe288;
+  --color-warning-yellow-6: #fbdb74;
+  --color-warning-yellow-7: #fbd55e;
+  --color-warning-yellow-8: #face42;
+  --color-warning-yellow-9: #fac712;
+  --color-warning-yellow-10: #f4b30d;
+  --color-warning-yellow-11: #ed9f07;
+  --color-warning-yellow-12: #b67a08;
+
+  /* Black (alpha) */
+  --color-black-alpha-8: rgba(0, 0, 0, 0.08);
+  --color-black-alpha-12: rgba(0, 0, 0, 0.12);
+  --color-black-alpha-16: rgba(0, 0, 0, 0.16);
+  --color-black-alpha-24: rgba(0, 0, 0, 0.24);
+  --color-black-alpha-40: rgba(0, 0, 0, 0.4);
+  --color-black-alpha-56: rgba(0, 0, 0, 0.56);
+  --color-black-alpha-64: rgba(0, 0, 0, 0.64);
+  --color-black-alpha-72: rgba(0, 0, 0, 0.72);
+  --color-black-alpha-90: rgba(0, 0, 0, 0.9);
+
+  /* White (alpha) — "white-4" is opaque (#ffffff, alpha 1) in the Figma
+     file itself, not a typo introduced here; mirrored as-is. */
+  --color-white: #ffffff;
+  --color-white-alpha-2: rgba(255, 255, 255, 0.02);
+  --color-white-alpha-4: #ffffff;
+  --color-white-alpha-6: rgba(255, 255, 255, 0.06);
+  --color-white-alpha-8: rgba(255, 255, 255, 0.08);
+  --color-white-alpha-10: rgba(255, 255, 255, 0.1);
+  --color-white-alpha-12: rgba(255, 255, 255, 0.12);
+  --color-white-alpha-16: rgba(255, 255, 255, 0.16);
+  --color-white-alpha-24: rgba(255, 255, 255, 0.24);
+  --color-white-alpha-40: rgba(255, 255, 255, 0.4);
+  --color-white-alpha-56: rgba(255, 255, 255, 0.56);
+  --color-white-alpha-64: rgba(255, 255, 255, 0.64);
+  --color-white-alpha-72: rgba(255, 255, 255, 0.72);
+  --color-white-alpha-80: rgba(255, 255, 255, 0.8);
+  --color-white-alpha-88: rgba(255, 255, 255, 0.88);
+
+  /* ------------------------------------------------------------------
+     Figma "Tokens" collection — semantic layer, aliasing the
+     primitives above exactly as the Figma file does. Generates
+     utilities matching Figma's names (bg-surface-base, text-text-primary,
+     border-border-default, ...).
+     ------------------------------------------------------------------ */
+  --color-border-default: var(--color-neutral-6);
+  --color-border-disabled: var(--color-neutral-4);
+  --color-border-focus: var(--color-brand-9);
+  --color-border-hover: var(--color-neutral-8);
+
+  --color-brand-bg: var(--color-brand-3);
+  --color-brand-bg-hover: var(--color-brand-4);
+  --color-brand-border: var(--color-brand-6);
+  --color-brand-contrast: var(--color-neutral-1);
+  --color-brand-icon: var(--color-brand-11);
+  --color-brand-solid: var(--color-brand-9);
+  --color-brand-solid-hover: var(--color-brand-10);
+  --color-brand-text: var(--color-brand-11);
+
+  --color-error-bg: var(--color-error-red-3);
+  --color-error-bg-hover: var(--color-error-red-4);
+  --color-error-border: var(--color-error-red-6);
+  --color-error-contrast: var(--color-neutral-1);
+  --color-error-icon: var(--color-error-red-11);
+  --color-error-solid: var(--color-error-red-9);
+  --color-error-solid-hover: var(--color-error-red-10);
+  --color-error-text: var(--color-error-red-11);
+
+  --color-info-bg: var(--color-info-blue-3);
+  --color-info-bg-hover: var(--color-info-blue-4);
+  --color-info-border: var(--color-info-blue-6);
+  --color-info-contrast: var(--color-neutral-1);
+  --color-info-icon: var(--color-info-blue-11);
+  --color-info-solid: var(--color-info-blue-9);
+  --color-info-solid-hover: var(--color-info-blue-10);
+  --color-info-text: var(--color-info-blue-11);
+
+  --color-primary-bg: var(--color-secondary-blue-1);
+  --color-primary-bg-hover: var(--color-secondary-blue-2);
+  --color-primary-border: var(--color-secondary-blue-6);
+  --color-primary-contrast: var(--color-neutral-1);
+  --color-primary-icon: var(--color-secondary-blue-9);
+  --color-primary-solid: var(--color-secondary-blue-9);
+  --color-primary-solid-hover: var(--color-secondary-blue-10);
+  --color-primary-text: var(--color-secondary-blue-9);
+
+  --color-success-bg: var(--color-success-green-3);
+  --color-success-bg-hover: var(--color-success-green-4);
+  --color-success-border: var(--color-success-green-6);
+  --color-success-contrast: var(--color-neutral-1);
+  --color-success-icon: var(--color-success-green-11);
+  --color-success-solid: var(--color-success-green-9);
+  --color-success-solid-hover: var(--color-success-green-10);
+  --color-success-text: var(--color-success-green-11);
+
+  --color-surface-base: var(--color-neutral-1);
+  --color-surface-highlight: var(--color-neutral-3);
+  --color-surface-subtle: var(--color-neutral-2);
+
+  --color-text-blue: var(--color-secondary-blue-700);
+  --color-text-light: var(--color-neutral-2);
+  --color-text-primary: var(--color-neutral-12);
+  --color-text-secondary: var(--color-neutral-11);
+  --color-text-tertiary: var(--color-neutral-9);
+
+  --color-warning-bg: var(--color-warning-yellow-3);
+  --color-warning-bg-hover: var(--color-warning-yellow-4);
+  --color-warning-border: var(--color-warning-yellow-6);
+  --color-warning-contrast: var(--color-neutral-12);
+  --color-warning-icon: var(--color-warning-yellow-11);
+  --color-warning-solid: var(--color-warning-yellow-9);
+  --color-warning-solid-hover: var(--color-warning-yellow-10);
+  --color-warning-text: var(--color-warning-yellow-11);
+
+  /* ------------------------------------------------------------------
+     Figma "radius" collection — single scale, no separate
+     primitive/semantic split in the file itself. Values confirmed to
+     match this project's previous derived scale exactly.
+     ------------------------------------------------------------------ */
+  --radius-none: 0px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+  /* Figma doesn't define anything larger than lg; kept as a scaled
+     extension of lg so shadcn components asking for xl/2xl/etc. still
+     resolve to something proportionate. */
+  --radius-xl: calc(var(--radius-lg) * 1.4);
+  --radius-2xl: calc(var(--radius-lg) * 1.8);
+  --radius-3xl: calc(var(--radius-lg) * 2.2);
+  --radius-4xl: calc(var(--radius-lg) * 2.6);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-family-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Thin, unobtrusive scrollbar for in-page scroll containers (dropdown lists,
+   long form panels, etc.) — the browser's default scrollbar reads as a stray
+   vertical rule against these bordered white panels. */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-default) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    border-radius: 999px;
+  }
+}
